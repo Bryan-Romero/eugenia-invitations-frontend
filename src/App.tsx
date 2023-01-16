@@ -2,7 +2,7 @@ import React from 'react';
 import { Routes, Route } from "react-router-dom";
 import ForgotPassword from './pages/ForgotPassword';
 import NavBar from './components/NavBar';
-import Home from './pages/Home';
+import Login from './pages/Login';
 import CreateAccount from './pages/CreateAccount';
 import CreateInvitation from './pages/CreateInvitation';
 import InvitationsList from './components/InvitationsList';
@@ -13,7 +13,7 @@ function App() {
     <div className="bg-gray-300 flex flex-1 flex-col w-screen h-screen">
       <NavBar />
       <Routes>
-          <Route path="/" element={<Home />}/>
+          <Route path="/" element={<Login />}/>
           <Route path="/createAccount" element={<CreateAccount />}/>
           <Route path="/invitationsList" element={<InvitationsList />}/>
           <Route path="/createInvitation" element={<CreateInvitation />}/>
