@@ -54,7 +54,7 @@ const ForgotPassword = () => {
         onSubmit={handleSubmit(submitForm)}
         className="bg-gray-100 w-fit h-fit flex flex-col items-center gap-8 rounded-2xl px-6 py-7 shadow-md"
       >
-        <p className="text-lg tracking-wider font-medium">Cambiar contraseña</p>
+        <p className="text-lg tracking-wider font-medium">Enviar E-mail</p>
         {errors.error && (
           <p className="text-sm text-red-500 font-medium" role="alert">
             {errors.error?.message}
