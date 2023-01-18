@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getInvitationsByIdService } from "../services/getInvitationsByIdService";
-import { InputsCreateInvitation } from "../types/InputsTypes";
 import { formDateOfEntry, formExpirationDate } from "../utils/formatDate";
 
 const InvitationDetail = () => {
@@ -12,6 +11,7 @@ const InvitationDetail = () => {
   });
   const [error, setError] = useState(false);
   const { token } = useParams();
+  
   useEffect(() => {
     getInvitationsByIdService(token!)
       .then((res) => {

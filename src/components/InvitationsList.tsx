@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import Invitation from "./Invitation";
 import { useSelector } from "react-redux";
 import { RootState } from "../app/store";

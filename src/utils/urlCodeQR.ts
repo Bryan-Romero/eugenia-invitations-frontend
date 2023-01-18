@@ -1,1 +1,1 @@
-export const UrlCodeQR = "http://localhost:3000/invitationDetail/"
+export const UrlCodeQR = "https://eugenia-invitation.vercel.app/invitationDetail/"

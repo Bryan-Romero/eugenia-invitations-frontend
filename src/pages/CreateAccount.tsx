@@ -3,7 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import axios from "../api/axios";
 import { InputsCreateAccount } from "../types/InputsTypes";
 import { createUserService } from "../services/createUserService";
 import { RootState } from "../app/store";
