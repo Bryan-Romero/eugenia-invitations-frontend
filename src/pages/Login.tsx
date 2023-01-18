@@ -2,12 +2,17 @@ import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { InputsLogin } from "../types/InputsTypes";
+import { loginService } from "../services/loginService";
+import { useSelector, useDispatch } from "react-redux";
+import { invitations, login } from "../features/auth/authSlice";
+import { RootState } from "../app/store";
+import { getInvitationsService } from "../services/getInvitationsService";
 
-type Inputs = {
-  email: string;
-  password: string;
-};
+interface Inputs extends InputsLogin {
+  error: string;
+}
 
 const schema = yup
   .object()
@@ -20,20 +25,57 @@ const schema = yup
   })
   .required();
 
-const Home = () => {
+const Login = () => {
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors },
   } = useForm<Inputs>({
     resolver: yupResolver(schema), // yup, joi and even your own.
   });
+  const dispatch = useDispatch();
+  // const auth = useSelector((state: RootState) => state.auth.jwt);
 
-  const submitForm = (data: Inputs) => {
-    console.log(data)
+  const submitForm = async (data: InputsLogin) => {
+    await loginService(data)
+      .then((res) => {
+        dispatch(login(res));
+        getInvitationsService(res.token)
+          .then((res) => {
+            dispatch(invitations(res));
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      })
+      .catch((error) => {
+        if (error?.email) {
+          setError(
+            "email",
+            { type: "focus", message: error.email },
+            { shouldFocus: true }
+          );
+          return;
+        }
+        if (error?.password) {
+          setError(
+            "password",
+            {
+              type: "focus",
+              message: error.password,
+            },
+            { shouldFocus: true }
+          );
+          return;
+        }
+        setError("error", { message: error?.response?.data?.message });
+      });
   };
 
-  useEffect(() => {}, []);
+  // useEffect(() => {
+  //   if(auth) navigate("/home")
+  // }, [auth, navigate]);
 
   return (
     <div className="w-full h-full flex justify-center items-center">
@@ -42,6 +84,11 @@ const Home = () => {
         className="bg-gray-100 w-fit h-fit flex flex-col items-center gap-8 rounded-2xl px-6 py-7 shadow-md"
       >
         <p className="text-lg tracking-wider font-medium">Iniciar sesion</p>
+        {errors.error && (
+          <p className="text-sm text-red-500 font-medium" role="alert">
+            {errors.error?.message}
+          </p>
+        )}
         <div className="w-full flex flex-col gap-1">
           <input
             className="outline-none w-72 px-2 py-2 border-2 border-gray-400 rounded-lg placeholder-slate-400"
@@ -76,7 +123,7 @@ const Home = () => {
             Olvidaste tu contraseña?
           </p>
         </Link>
-        <Link to="/">
+        <Link to="/createAccount">
           <p className="text-blue-500 font-semibold border-b border-b-transparent hover:border-b-blue-500">
             Crear una cuenta
           </p>
@@ -86,4 +133,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default Login;

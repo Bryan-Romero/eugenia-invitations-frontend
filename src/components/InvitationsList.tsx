@@ -1,57 +1,24 @@
-import React from "react";
+import React, { useEffect } from "react";
+import Invitation from "./Invitation";
+import { useSelector } from "react-redux";
+import { RootState } from "../app/store";
+import { formDateOfEntry, formExpirationDate } from "../utils/formatDate";
 
 const InvitationsList = () => {
+  const auth = useSelector((state: RootState) => state.auth.invitations);
+
   return (
-    <div className="w-full h-full px-14 py-5 flex flex-col gap-4 overflow-y-scroll">
-      <button className="self-start bg-green-600 px-8 py-2 text-white font-semibold rounded-lg hover:bg-green-700">
-        Nueva invitacion
-      </button>
-      <div className="w-full flex flex-col gap-3">
-        <div className="bg-gray-100 flex flex-row w-full h-fit px-5 py-3 rounded-2xl shadow-sm hover:shadow-md items-center justify-between">
-          Invitation 1
-          <button className="bg-red-500 px-8 py-2 text-white font-semibold rounded-lg hover:bg-red-600 ">Eliminar</button>
-        </div>
-        <div className="bg-gray-100 flex flex-row w-full h-fit px-5 py-3 rounded-2xl shadow-sm hover:shadow-md items-center justify-between">
-          Invitation 1
-          <button className="bg-red-500 px-8 py-2 text-white font-semibold rounded-lg hover:bg-red-600 ">Eliminar</button>
-        </div>
-        <div className="bg-gray-100 flex flex-row w-full h-fit px-5 py-3 rounded-2xl shadow-sm hover:shadow-md items-center justify-between">
-          Invitation 1
-          <button className="bg-red-500 px-8 py-2 text-white font-semibold rounded-lg hover:bg-red-600 ">Eliminar</button>
-        </div>
-        <div className="bg-gray-100 flex flex-row w-full h-fit px-5 py-3 rounded-2xl shadow-sm hover:shadow-md items-center justify-between">
-          Invitation 1
-          <button className="bg-red-500 px-8 py-2 text-white font-semibold rounded-lg hover:bg-red-600 ">Eliminar</button>
-        </div>
-        <div className="bg-gray-100 flex flex-row w-full h-fit px-5 py-3 rounded-2xl shadow-sm hover:shadow-md items-center justify-between">
-          Invitation 1
-          <button className="bg-red-500 px-8 py-2 text-white font-semibold rounded-lg hover:bg-red-600 ">Eliminar</button>
-        </div>
-        <div className="bg-gray-100 flex flex-row w-full h-fit px-5 py-3 rounded-2xl shadow-sm hover:shadow-md items-center justify-between">
-          Invitation 1
-          <button className="bg-red-500 px-8 py-2 text-white font-semibold rounded-lg hover:bg-red-600 ">Eliminar</button>
-        </div>
-        <div className="bg-gray-100 flex flex-row w-full h-fit px-5 py-3 rounded-2xl shadow-sm hover:shadow-md items-center justify-between">
-          Invitation 1
-          <button className="bg-red-500 px-8 py-2 text-white font-semibold rounded-lg hover:bg-red-600 ">Eliminar</button>
-        </div>
-        <div className="bg-gray-100 flex flex-row w-full h-fit px-5 py-3 rounded-2xl shadow-sm hover:shadow-md items-center justify-between">
-          Invitation 1
-          <button className="bg-red-500 px-8 py-2 text-white font-semibold rounded-lg hover:bg-red-600 ">Eliminar</button>
-        </div>
-        <div className="bg-gray-100 flex flex-row w-full h-fit px-5 py-3 rounded-2xl shadow-sm hover:shadow-md items-center justify-between">
-          Invitation 1
-          <button className="bg-red-500 px-8 py-2 text-white font-semibold rounded-lg hover:bg-red-600 ">Eliminar</button>
-        </div>
-        <div className="bg-gray-100 flex flex-row w-full h-fit px-5 py-3 rounded-2xl shadow-sm hover:shadow-md items-center justify-between">
-          Invitation 1
-          <button className="bg-red-500 px-8 py-2 text-white font-semibold rounded-lg hover:bg-red-600 ">Eliminar</button>
-        </div>
-        <div className="bg-gray-100 flex flex-row w-full h-fit px-5 py-3 rounded-2xl shadow-sm hover:shadow-md items-center justify-between">
-          Invitation 1
-          <button className="bg-red-500 px-8 py-2 text-white font-semibold rounded-lg hover:bg-red-600 ">Eliminar</button>
-        </div>
-      </div>
+    <div className="w-full flex flex-col-reverse gap-3 pb-3">
+      {auth?.map((invitation) => (
+        <Invitation
+          id={invitation.id}
+          guestName={invitation.guestName}
+          dateOfEntry={formDateOfEntry(invitation.dateOfEntry)}
+          expirationDate={formExpirationDate(invitation.expirationDate)}
+          tokenShare={invitation.tokenShare}
+          key={invitation.id + invitation.guestName}
+        />
+      ))}
     </div>
   );
 };
