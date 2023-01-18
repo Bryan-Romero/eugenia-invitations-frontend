@@ -4,5 +4,5 @@ const BASE_URL = "https://eugenia-invitations.onrender.com/api/";
 const LOCAL_URL = "http://localhost:4000/api/"
 
 export default axios.create({
-  baseURL: LOCAL_URL,
+  baseURL: BASE_URL,
 });
