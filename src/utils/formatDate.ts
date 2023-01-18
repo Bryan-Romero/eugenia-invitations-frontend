@@ -13,7 +13,6 @@ export const formDateOfEntry = (date: string) => {
 
 export const formExpirationDate = (date: string) => {
   const expirationDate = new Date(date);
-  console.log(expirationDate.getUTCDate())
   return `${expirationDate.getUTCDate()}/${
     expirationDate.getUTCMonth() + 1 < 10
       ? `0${expirationDate.getUTCMonth() + 1}`
