@@ -1,10 +1,18 @@
 import axios from "../api/axios";
 import { InputsForgotPassword } from "../types/InputsTypes";
+import { ApiMessageSuccess } from "../types/ApiRespondTypes";
 
-export const forgotPasswordService = async (data:InputsForgotPassword ):Promise<any> => {
-  try {
-    return await (await axios.post("user/forgotPassword", data)).data
-  } catch (error: any) {
-    throw error.response.data.message;
-  }
+export const forgotPasswordService = (
+  data: InputsForgotPassword
+): Promise<ApiMessageSuccess> => {
+  return new Promise(async (resolve, reject) => {
+    await axios
+      .post("user/forgotPassword", data)
+      .then((response) => {
+        resolve(response.data);
+      })
+      .catch((err) => {
+        reject(err.response.data.message);
+      });
+  });
 };

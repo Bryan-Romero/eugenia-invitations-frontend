@@ -1,12 +1,14 @@
 import React, { useState } from "react";
-import { deleteInvitationService } from "../services/deleteInvitationService";
 import { InputsCreateInvitation } from "../types/InputsTypes";
 import { RootState } from "../app/store";
 import { useDispatch, useSelector } from "react-redux";
-import { invitations } from "../features/auth/authSlice";
 import QRCode from "qrcode";
 import Modal from "../components/Modal";
 import { UrlCodeQR } from "../utils/urlCodeQR";
+import { deleteInvitationService } from "../services/deleteInvitationService";
+import { invitations } from "../features/invitations/invitationsSlice";
+import { useNavigate } from "react-router-dom";
+import { logout } from "../features/auth/authSlice";
 
 const Invitation = ({
   id,
@@ -15,8 +17,9 @@ const Invitation = ({
   expirationDate,
   tokenShare,
 }: InputsCreateInvitation) => {
+  const navigate = useNavigate();
   const dispatch = useDispatch();
-  const auth = useSelector((state: RootState) => state.auth.jwt);
+  const auth = useSelector((state: RootState) => state.auth.authReducer.token);
   const [qr, setQr] = useState("");
   const [urlQR, setUrlQR] = useState("");
   const [showModal, setShoModal] = useState(false);
@@ -46,11 +49,13 @@ const Invitation = ({
 
   const handleDelete = (id: string) => {
     deleteInvitationService(auth, id)
-      .then((res) => {
-        dispatch(invitations(res));
+      .then((response) => {
+        dispatch(invitations(response));
       })
       .catch((error) => {
-        console.log(error);
+        console.error(error);
+        dispatch(logout());
+        navigate("/");
       });
   };
 
@@ -85,7 +90,10 @@ const Invitation = ({
         </Modal>
       )}
       <div className="bg-gray-100 flex flex-row w-full h-fit px-5 py-3 rounded-2xl shadow-sm hover:shadow-md items-center justify-between">
-        <div className="w-full cursor-pointer flex flex-row justify-evenly flex-wrap" onClick={handleInvitation}>
+        <div
+          className="w-full h-full cursor-pointer flex flex-row justify-evenly flex-wrap"
+          onClick={handleInvitation}
+        >
           <div className="flex w-1/3 flex-col items-center justify-center">
             <p className="text-lg font-semibold ml-2">
               {guestName.toUpperCase()}

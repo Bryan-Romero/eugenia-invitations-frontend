@@ -1,15 +1,19 @@
 import axios from "../api/axios";
 import { InputsChangePassword } from "../types/InputsTypes";
+import { ApiMessageSuccess } from "../types/ApiRespondTypes";
 
 export const changePasswordService = async (
   token: string,
   data: InputsChangePassword
-): Promise<any> => {
-  try {
-    return await (
-      await axios.patch(`user/changePassword/${token}`, data)
-    ).data;
-  } catch (error: any) {
-    throw error.response.data.message;
-  }
+): Promise<ApiMessageSuccess> => {
+  return new Promise(async (resolve, reject) => {
+    await axios
+      .patch(`user/changePassword/${token}`, data)
+      .then((response) => {
+        resolve(response.data);
+      })
+      .catch((err) => {
+        reject(err.response.data.message);
+      });
+  });
 };

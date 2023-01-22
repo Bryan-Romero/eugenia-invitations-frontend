@@ -4,10 +4,14 @@ export const formDateOfEntry = (date: string) => {
     dateOfEntry.getUTCMonth() + 1 < 10
       ? `0${dateOfEntry.getUTCMonth() + 1}`
       : dateOfEntry.getUTCMonth() + 1
-  }/${dateOfEntry.getUTCFullYear()} ${dateOfEntry.getUTCHours()}:${
-    dateOfEntry.getUTCMinutes() < 10
-      ? `0${dateOfEntry.getUTCMinutes()}`
-      : dateOfEntry.getUTCMinutes()
+  }/${dateOfEntry.getUTCFullYear()} - ${
+    dateOfEntry.getHours() < 10
+      ? `0${dateOfEntry.getHours()}`
+      : dateOfEntry.getHours()
+  }:${
+    dateOfEntry.getMinutes() < 10
+      ? `0${dateOfEntry.getMinutes()}`
+      : dateOfEntry.getMinutes()
   }`;
 };
 

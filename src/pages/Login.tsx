@@ -1,12 +1,18 @@
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { InputsLogin } from "../types/InputsTypes";
-import { loginService } from "../services/loginService";
 import { useDispatch } from "react-redux";
-import { invitations, login } from "../features/auth/authSlice";
+import { login, logout } from "../features/auth/authSlice";
+import { loginService } from "../services/loginService";
+import Spinner from "../components/Spinner";
+import {
+  invitations,
+  loadingInvitationsFalse,
+  loadingInvitationsTrue,
+} from "../features/invitations/invitationsSlice";
 import { getInvitationsService } from "../services/getInvitationsService";
 
 interface Inputs extends InputsLogin {
@@ -33,19 +39,27 @@ const Login = () => {
   } = useForm<Inputs>({
     resolver: yupResolver(schema), // yup, joi and even your own.
   });
+  const navigate = useNavigate()
   const dispatch = useDispatch();
-  // const auth = useSelector((state: RootState) => state.auth.jwt);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const submitForm = async (data: InputsLogin) => {
-    await loginService(data)
-      .then((res) => {
-        dispatch(login(res));
-        getInvitationsService(res.token)
+  const submitForm = (data: InputsLogin) => {
+    setIsLoading(true);
+    loginService(data)
+      .then((response) => {
+        dispatch(login(response));
+        setIsLoading(false);
+        dispatch(loadingInvitationsTrue());
+        getInvitationsService(response.token)
           .then((res) => {
             dispatch(invitations(res));
+            dispatch(loadingInvitationsFalse());
           })
-          .catch((error) => {
-            console.log(error);
+          .catch((err) => {
+            console.error(err);
+            dispatch(loadingInvitationsFalse());
+            dispatch(logout());
+            navigate("/")
           });
       })
       .catch((error) => {
@@ -55,6 +69,7 @@ const Login = () => {
             { type: "focus", message: error.email },
             { shouldFocus: true }
           );
+          setIsLoading(false);
           return;
         }
         if (error?.password) {
@@ -66,22 +81,21 @@ const Login = () => {
             },
             { shouldFocus: true }
           );
+          setIsLoading(false);
           return;
         }
-        setError("error", { message: error?.response?.data?.message });
+        setError("error", { message: error });
+        setIsLoading(false);
       });
   };
-
-  // useEffect(() => {
-  //   if(auth) navigate("/home")
-  // }, [auth, navigate]);
 
   return (
     <div className="w-full h-full flex justify-center items-center">
       <form
         onSubmit={handleSubmit(submitForm)}
-        className="bg-gray-100 w-fit h-fit flex flex-col items-center gap-8 rounded-2xl px-6 py-7 shadow-md"
+        className="bg-gray-100 w-fit h-fit flex flex-col items-center gap-8 rounded-2xl px-6 py-7 shadow-md relative overflow-hidden"
       >
+        {isLoading && <Spinner />}
         <p className="text-lg tracking-wider font-medium">Iniciar sesion</p>
         {errors.error && (
           <p className="text-sm text-red-500 font-medium" role="alert">
@@ -90,10 +104,11 @@ const Login = () => {
         )}
         <div className="w-full flex flex-col gap-1">
           <input
-            className="outline-none w-72 px-2 py-2 border-2 border-gray-400 rounded-lg placeholder-slate-400"
+            className="outline-none w-72 px-2 py-2 border-2 border-gray-400 rounded-lg placeholder-slate-400 disabled:bg-gray-300"
             {...register("email")}
             placeholder="E-mail"
-            type="text"
+            type="email"
+            disabled={isLoading}
           />
           {errors.email && (
             <p className="text-sm text-red-500 font-medium" role="alert">
@@ -103,10 +118,11 @@ const Login = () => {
         </div>
         <div className="w-full flex flex-col gap-1">
           <input
-            className="outline-none w-72 px-2 py-2 border-2 border-gray-400 rounded-lg placeholder-slate-400"
+            className="outline-none w-72 px-2 py-2 border-2 border-gray-400 rounded-lg placeholder-slate-400 disabled:bg-gray-300"
             {...register("password")}
             placeholder="Contraseña"
             type="password"
+            disabled={isLoading}
           />
           {errors.password && (
             <p className="text-sm text-red-500 font-medium" role="alert">
@@ -114,18 +130,27 @@ const Login = () => {
             </p>
           )}
         </div>
-        <button className="bg-blue-500 px-8 py-2 text-white font-semibold rounded-lg hover:bg-blue-600">
+        <button
+          className="bg-blue-500 disabled:bg-blue-900 px-8 py-2 text-white font-semibold rounded-lg hover:bg-blue-600"
+          disabled={isLoading}
+        >
           Siguiente
         </button>
-        <Link to="/forgotPassword">
-          <p className="text-blue-500 border-b border-b-transparent hover:border-b-blue-500">
-            Olvidaste tu contraseña?
-          </p>
+        <Link
+          to="/forgotPassword"
+          className={`text-blue-500 border-b border-b-transparent hover:border-b-blue-500 ${
+            isLoading && "pointer-events-none text-blue-900"
+          }`}
+        >
+          Olvidaste tu contraseña?
         </Link>
-        <Link to="/createAccount">
-          <p className="text-blue-500 font-semibold border-b border-b-transparent hover:border-b-blue-500">
-            Crear una cuenta
-          </p>
+        <Link
+          to="/createAccount"
+          className={`text-blue-500 font-semibold border-b border-b-transparent hover:border-b-blue-500 ${
+            isLoading && "pointer-events-none text-blue-900"
+          }`}
+        >
+          Crear una cuenta
         </Link>
       </form>
     </div>

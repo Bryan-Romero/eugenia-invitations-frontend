@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import Spinner from "../components/Spinner";
 import { getInvitationsByIdService } from "../services/getInvitationsByIdService";
 import { formDateOfEntry, formExpirationDate } from "../utils/formatDate";
 
@@ -10,27 +11,33 @@ const InvitationDetail = () => {
     expirationDate: "",
   });
   const [error, setError] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const { token } = useParams();
-  
+
   useEffect(() => {
+    setIsLoading(true);
     getInvitationsByIdService(token!)
-      .then((res) => {
+      .then((response) => {
         setInvitation({
-          ...invitation,
-          guestName: res.invitation.guestName,
-          dateOfEntry: res.invitation.dateOfEntry,
-          expirationDate: res.invitation.expirationDate,
+          guestName: response.invitation.guestName,
+          dateOfEntry: response.invitation.dateOfEntry,
+          expirationDate: response.invitation.expirationDate,
         });
+        setIsLoading(false);
       })
-      .catch((erro) => {
+      .catch((err) => {
+        console.error(err);
         setError(true);
+        setIsLoading(false);
       });
   }, []);
 
   return (
     <div className="w-full h-full flex justify-center items-center">
-      <div className="bg-gray-100 max-w-md h-fit flex flex-col items-center gap-8 rounded-2xl p-9 shadow-md">
-        {!error ? (
+      <div className="bg-gray-100 max-w-md h-fit flex flex-col items-center gap-8 rounded-2xl p-9 shadow-md relative overflow-hidden">
+        {!isLoading ? (
+          <Spinner />
+        ) : !error ? (
           <>
             <p className="text-5xl font-semibold text-center">
               {invitation.guestName}

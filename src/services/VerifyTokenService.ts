@@ -1,16 +1,20 @@
 import axios from "../api/axios";
+import { ApiLogin } from "../types/ApiRespondTypes";
 
-export const VerifyTokenService = async (jwt: string): Promise<any> => {
-  try {
-    return await (
-      await axios.get("user/validate-token", {
+export const verifyTokenService = (token: string): Promise<ApiLogin> => {
+  return new Promise(async (resolve, reject) => {
+    await axios
+      .get("user/validate-token", {
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${jwt}`,
+          Authorization: `Bearer ${token}`,
         },
       })
-    ).data;
-  } catch (error: any) {
-    throw error.response;
-  }
+      .then((response) => {
+        resolve(response.data);
+      })
+      .catch((err) => {
+        reject(err.response.data.message);
+      });
+  });
 };

@@ -6,7 +6,7 @@ const Home = () => {
   const navigate = useNavigate();
 
   const handleCreateInvitation = () => {
-    navigate("/createInvitation")
+    navigate("/createInvitation");
   };
 
   return (

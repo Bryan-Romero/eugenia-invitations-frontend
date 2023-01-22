@@ -1,21 +1,24 @@
 import axios from "../api/axios";
+import { ApiInvitations } from "../types/ApiRespondTypes";
 
-export const deleteInvitationService = async (jwt: string | null, id: string): Promise<any> => {
-  try {
-    return await (
-        await axios.delete(
-            "invitation/delete_invitation", {
-                data:{
-                    id,
-                },
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${jwt}`
-                }
-            }
-          )).data;
-  } catch (error: any) {
-    console.log(error)
-    throw error.response.data.message;
-  }
+export const deleteInvitationService = (
+  jwt: string,
+  id: string
+): Promise<ApiInvitations> => {
+  return new Promise(async (resolve, reject) => {
+    await axios
+      .delete("invitation/delete_invitation", {
+        data: { id },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${jwt}`,
+        },
+      })
+      .then((response) => {
+        resolve(response.data);
+      })
+      .catch((err) => {
+        reject(err.response.data.message);
+      });
+  });
 };

@@ -3,14 +3,16 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { InputsCreateInvitation } from "../types/InputsTypes";
-import { RootState } from "../app/store";
-import { useDispatch, useSelector } from "react-redux";
-import { invitations } from "../features/auth/authSlice";
-import { createInvitationService } from "../services/createInvitationService";
 import { useNavigate } from "react-router-dom";
 import QRCode from "qrcode";
 import Modal from "../components/Modal";
+import Spinner from "../components/Spinner";
+import { createInvitationService } from "../services/createInvitationService";
+import { RootState } from "../app/store";
+import { useSelector, useDispatch } from "react-redux";
+import { invitations } from "../features/invitations/invitationsSlice";
 import { UrlCodeQR } from "../utils/urlCodeQR";
+import { logout } from "../features/auth/authSlice";
 
 const schema = yup
   .object()
@@ -29,12 +31,13 @@ const CreateInvitation = () => {
   } = useForm<InputsCreateInvitation>({
     resolver: yupResolver(schema), // yup, joi and even your own.
   });
-  const dispatch = useDispatch();
-  const auth = useSelector((state: RootState) => state.auth.jwt);
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
   const [urlQR, setUrlQR] = useState("");
   const [qr, setQr] = useState("");
   const [showModal, setShoModal] = useState(false);
+  const token = useSelector((state: RootState) => state.auth.authReducer.token);
+  const dispatch = useDispatch();
 
   const generateQRCode = (url: string) => {
     QRCode.toDataURL(
@@ -61,15 +64,20 @@ const CreateInvitation = () => {
   };
 
   const submitForm = (data: InputsCreateInvitation) => {
-    createInvitationService(auth, data)
-      .then((res) => {
-        dispatch(invitations(res));
-        generateQRCode(UrlCodeQR + res.token);
-        setUrlQR(UrlCodeQR +  res.token);
-        setShoModal(true)
+    setIsLoading(true);
+    createInvitationService(token!, data)
+      .then((response) => {
+        dispatch(invitations(response));
+        generateQRCode(UrlCodeQR + response.token);
+        setUrlQR(UrlCodeQR + response.token);
+        setShoModal(true);
+        setIsLoading(false);
       })
-      .catch((error) => {
-        console.log(error);
+      .catch((err) => {
+        console.error(err);
+        setIsLoading(false);
+        dispatch(logout());
+        navigate("/");
       });
   };
 
@@ -99,15 +107,17 @@ const CreateInvitation = () => {
       )}
       <form
         onSubmit={handleSubmit(submitForm)}
-        className="bg-gray-100 w-fit h-fit flex flex-col items-center gap-8 rounded-2xl px-6 py-7 shadow-md"
+        className="bg-gray-100 w-fit h-fit flex flex-col items-center gap-8 rounded-2xl px-6 py-7 shadow-md relative overflow-hidden"
       >
+        {isLoading && <Spinner />}
         <p className="text-lg tracking-wider font-medium">Crear invitacion</p>
         <div className="w-full flex flex-col gap-1">
           <input
-            className="outline-none w-72 px-2 py-2 border-2 border-gray-400 rounded-lg placeholder-slate-400"
+            className="outline-none w-72 px-2 py-2 border-2 border-gray-400 rounded-lg placeholder-slate-400 disabled:bg-gray-300"
             {...register("guestName")}
             placeholder="Nombre del invitado"
             type="text"
+            disabled={isLoading}
           />
           {errors.guestName && (
             <p className="text-sm text-red-500 font-medium" role="alert">
@@ -119,9 +129,10 @@ const CreateInvitation = () => {
           <div className="w-full flex flex-col gap-2">
             <p className="text-gray-400">Fecha y hora de entrada</p>
             <input
-              className="outline-none w-72 px-2 py-2 border-2 border-gray-400 rounded-lg"
+              className="outline-none w-72 px-2 py-2 border-2 border-gray-400 rounded-lg placeholder-slate-400 disabled:bg-gray-300"
               {...register("dateOfEntry")}
               type="datetime-local"
+              disabled={isLoading}
             />
           </div>
           {errors.dateOfEntry && (
@@ -134,9 +145,10 @@ const CreateInvitation = () => {
           <div className="w-full flex flex-col gap-2">
             <p className="text-gray-400">Fecha de caducidad</p>
             <input
-              className="outline-none w-72 px-2 py-2 border-2 border-gray-400 rounded-lg"
+              className="outline-none w-72 px-2 py-2 border-2 border-gray-400 rounded-lg placeholder-slate-400 disabled:bg-gray-300"
               {...register("expirationDate")}
               type="date"
+              disabled={isLoading}
             />{" "}
           </div>
           {errors.expirationDate && (
@@ -145,7 +157,10 @@ const CreateInvitation = () => {
             </p>
           )}
         </div>
-        <button className="bg-blue-500 px-8 py-2 text-white font-semibold rounded-lg hover:bg-blue-600">
+        <button
+          className="bg-blue-500 disabled:bg-blue-900 px-8 py-2 text-white font-semibold rounded-lg hover:bg-blue-600"
+          disabled={isLoading}
+        >
           Crear invitacion
         </button>
       </form>

@@ -1,54 +1,35 @@
-import { createSlice } from "@reduxjs/toolkit";
-import { getInvitationsService } from "../../services/getInvitationsService";
-import {InputsCreateInvitation} from '../../types/InputsTypes'
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { ApiLogin } from "../../types/ApiRespondTypes";
 
-export interface authState {
-  jwt: string | null;
+interface AuthTypes extends ApiLogin {
   isLogin: boolean;
-  name: string;
-  loading: boolean;
-  invitations: InputsCreateInvitation[] | null;
 }
 
-const initialState: authState = {
-  jwt: window.sessionStorage.getItem("jwtAppEugenia"),
+const initialState: AuthTypes = {
+  token: "",
+  user: "",
   isLogin: false,
-  name: "",
-  loading: false,
-  invitations: null,
+  createAt: "",
 };
 
 export const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
-    login: (state, action) => {
+    login: (state, { payload }: PayloadAction<ApiLogin>) => {
       state.isLogin = true;
-      state.jwt = action.payload.token;
-      state.name = action.payload.user;
-      window.sessionStorage.setItem("jwtAppEugenia", action.payload.token);
+      state.token = payload.token;
+      state.user = payload.user;
+      state.createAt = payload.createAt;
     },
     logout: (state) => {
       state.isLogin = false;
-      state.jwt = "";
-      state.name = "";
-      state.invitations = null;
-      window.sessionStorage.removeItem("jwtAppEugenia");
-    },
-    verefyToken: (state, action) => {
-      state.isLogin = true;
-      state.name = action.payload.user;
-    },
-    invitations: (state, action) => {
-      state.invitations = action.payload.invitations;
+      state.token = "";
+      state.user = "";
     },
   },
 });
 
-export const { login, logout, verefyToken, invitations } = authSlice.actions;
+export const { login, logout } = authSlice.actions;
 
 export default authSlice.reducer;
-
-// window.sessionStorage.getItem("jwtAppEugenia")
-// window.sessionStorage.setItem('jwtAppEugenia', token)
-// window.sessionStorage.removeItem('jwtAppEugenia')

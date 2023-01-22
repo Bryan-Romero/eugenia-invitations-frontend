@@ -1,14 +1,19 @@
 import axios from "../api/axios";
+import { ApiInvitations } from "../types/ApiRespondTypes";
 
-export const getInvitationsService = async (jwt: string | null): Promise<any> => {
-  try {
-    return await (
-      await axios.get("invitation/read_invitation", {
-        headers: { Authorization: `Bearer ${jwt}` }
+export const getInvitationsService = (
+  token: string
+): Promise<ApiInvitations> => {
+  return new Promise(async (resolve, reject) => {
+    await axios
+      .get("invitation/read_invitation", {
+        headers: { Authorization: `Bearer ${token}` },
       })
-    ).data;
-  } catch (error: any) {
-    console.log(error)
-    throw error.response.data.message;
-  }
+      .then((response) => {
+        resolve(response.data);
+      })
+      .catch((err) => {
+        reject(err.response.data.message);
+      });
+  });
 };

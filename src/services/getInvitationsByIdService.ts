@@ -1,12 +1,17 @@
 import axios from "../api/axios";
+import { ApiInvitation } from "../types/ApiRespondTypes";
 
-export const getInvitationsByIdService = async (token: string): Promise<any> => {
-  try {
-    return await (
-      await axios.get(`invitation/getInvitationById/${token}`)
-    ).data;
-  } catch (error: any) {
-    console.log(error)
-    throw error.response.data.message;
-  }
+export const getInvitationsByIdService = (
+  tokenShareInvitation: string
+): Promise<ApiInvitation> => {
+  return new Promise(async (resolve, reject) => {
+    await axios
+      .get(`invitation/getInvitationById/${tokenShareInvitation}`)
+      .then((response) => {
+        resolve(response.data);
+      })
+      .catch((err) => {
+        reject(err.response.data.message);
+      });
+  });
 };

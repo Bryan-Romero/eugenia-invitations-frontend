@@ -1,10 +1,16 @@
 import axios from "../api/axios";
 import { InputsLogin } from "../types/InputsTypes";
+import { ApiLogin } from "../types/ApiRespondTypes";
 
-export const loginService = async (data: InputsLogin):Promise<any> => {
-  try {
-    return await (await axios.post("user/login", data)).data
-  } catch (error: any) {
-    throw error.response.data.message;
-  }
+export const loginService = (data: InputsLogin): Promise<ApiLogin> => {
+  return new Promise(async (resolve, reject) => {
+    await axios
+      .post("user/login", data)
+      .then((response) => {
+        resolve(response.data);
+      })
+      .catch((err) => {
+        reject(err.response.data.message);
+      });
+  });
 };

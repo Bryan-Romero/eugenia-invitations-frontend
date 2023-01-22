@@ -1,20 +1,28 @@
 import axios from "../api/axios";
 import { InputsCreateInvitation } from "../types/InputsTypes";
+import { ApiInvitations } from "../types/ApiRespondTypes";
+
+interface ResponseType extends ApiInvitations {
+  token: string;
+}
 
 export const createInvitationService = async (
-  jwt: string | null,
+  jwt: string,
   data: InputsCreateInvitation
-): Promise<any> => {
-  try {
-    return await (
-      await axios.patch("invitation/create_invitation", data, {
+): Promise<ResponseType> => {
+  return new Promise(async (resolve, reject) => {
+    await axios
+      .patch("invitation/create_invitation", data, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${jwt}`,
         },
       })
-    ).data;
-  } catch (error: any) {
-    throw error.response.data.message;
-  }
+      .then((response) => {
+        resolve(response.data);
+      })
+      .catch((err) => {
+        reject(err.response.data.message);
+      });
+  });
 };
