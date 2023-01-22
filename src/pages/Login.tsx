@@ -39,7 +39,7 @@ const Login = () => {
   } = useForm<Inputs>({
     resolver: yupResolver(schema), // yup, joi and even your own.
   });
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -59,7 +59,7 @@ const Login = () => {
             console.error(err);
             dispatch(loadingInvitationsFalse());
             dispatch(logout());
-            navigate("/")
+            navigate("/");
           });
       })
       .catch((error) => {
