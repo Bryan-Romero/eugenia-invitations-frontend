@@ -1,22 +1,15 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { InputsCreateAccount } from "../types/InputsTypes";
-import { createUserService } from "../services/createUserService";
-import { RootState } from "../app/store";
-import { useDispatch, useSelector } from "react-redux";
-import { login, logout } from "../features/auth/authSlice";
-import { getInvitationsService } from "../services/getInvitationsService";
-import {
-  invitations,
-  loadingInvitationsFalse,
-  loadingInvitationsTrue,
-} from "../features/invitations/invitationsSlice";
+import { selectIsLoading, selectIsLogin } from "../features/auth/authSlice";
 import Spinner from "../components/Spinner";
+import { useAppDispatch, useAppSelector } from "../app/hooks";
+import { createUserAsync } from "../features/auth/authAsync";
 
-interface Inputs extends InputsCreateAccount {
+export interface Inputs extends InputsCreateAccount {
   error: string;
 }
 
@@ -39,7 +32,7 @@ const schema = yup
   })
   .required();
 
-const CreateAccount = () => {
+const CreateUser = () => {
   const {
     register,
     handleSubmit,
@@ -49,61 +42,29 @@ const CreateAccount = () => {
     resolver: yupResolver(schema), // yup, joi and even your own.
   });
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
-  const dispatch = useDispatch();
-  const auth = useSelector(
-    (state: RootState) => state.auth.authReducer.isLogin
-  );
+  const isLogin = useAppSelector(selectIsLogin);
+  const isLoading = useAppSelector(selectIsLoading);
+  const dispatch = useAppDispatch();
 
-  const submitForm = (data: InputsCreateAccount) => {
-    setIsLoading(true);
-    createUserService(data)
-      .then((response) => {
-        dispatch(login(response));
-        setIsLoading(false);
-        dispatch(loadingInvitationsTrue());
-        getInvitationsService(response.token)
-          .then((res) => {
-            dispatch(invitations(res));
-            dispatch(loadingInvitationsFalse());
-          })
-          .catch((err) => {
-            console.error(err);
-            dispatch(loadingInvitationsFalse());
-            dispatch(logout());
-            navigate("/");
-          });
-      })
-      .catch((err) => {
-        if (err?.email) {
-          setError(
-            "email",
-            { type: "focus", message: err.email },
-            { shouldFocus: true }
-          );
-          setIsLoading(false);
-          return;
-        }
-        setError("error", { message: err });
-        setIsLoading(false);
-      });
+  const submitForm2 = (data: InputsCreateAccount) => {
+    dispatch(createUserAsync({ data, setError }));
   };
 
   useEffect(() => {
-    if (auth) navigate("/");
-  }, [auth, navigate]);
+    if (isLogin) navigate("/");
+  }, [isLogin]);
 
   return (
     <div className="w-full h-full flex justify-center items-center">
       <form
-        onSubmit={handleSubmit(submitForm)}
+        onSubmit={handleSubmit(submitForm2)}
         className="bg-gray-100 w-fit h-fit flex flex-col items-center gap-4 rounded-2xl px-6 py-7 shadow-md relative overflow-hidden"
       >
         {isLoading && <Spinner />}
         <p className="text-lg tracking-wider font-medium">Crear cuenta</p>
         {errors.error && (
           <p className="text-sm text-red-500 font-medium" role="alert">
-            {errors.error?.message}
+            {errors.error.message}
           </p>
         )}
         <div className="w-full flex flex-col gap-1">
@@ -116,7 +77,7 @@ const CreateAccount = () => {
           />
           {errors.firstName && (
             <p className="text-sm text-red-500 font-medium" role="alert">
-              {errors.firstName?.message}
+              {errors.firstName.message}
             </p>
           )}
         </div>
@@ -130,7 +91,7 @@ const CreateAccount = () => {
           />
           {errors.lastName && (
             <p className="text-sm text-red-500 font-medium" role="alert">
-              {errors.lastName?.message}
+              {errors.lastName.message}
             </p>
           )}
         </div>
@@ -144,7 +105,7 @@ const CreateAccount = () => {
           />
           {errors.departmentNumber && (
             <p className="text-sm text-red-500 font-medium" role="alert">
-              {errors.departmentNumber?.message}
+              {errors.departmentNumber.message}
             </p>
           )}
         </div>
@@ -158,7 +119,7 @@ const CreateAccount = () => {
           />
           {errors.email && (
             <p className="text-sm text-red-500 font-medium" role="alert">
-              {errors.email?.message}
+              {errors.email.message}
             </p>
           )}
         </div>
@@ -172,7 +133,7 @@ const CreateAccount = () => {
           />
           {errors.password && (
             <p className="text-sm text-red-500 font-medium" role="alert">
-              {errors.password?.message}
+              {errors.password.message}
             </p>
           )}
         </div>
@@ -209,4 +170,4 @@ const CreateAccount = () => {
   );
 };
 
-export default CreateAccount;
+export default CreateUser;

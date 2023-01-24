@@ -1,1 +1,2 @@
-export const UrlCodeQR = "https://eugenia-invitation.vercel.app/invitationDetail/"
+export const UrlCodeQR =
+  "https://eugenia-invitation.vercel.app/invitationDetail/";

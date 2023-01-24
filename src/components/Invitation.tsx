@@ -1,14 +1,12 @@
 import React, { useState } from "react";
 import { InputsCreateInvitation } from "../types/InputsTypes";
-import { RootState } from "../app/store";
-import { useDispatch, useSelector } from "react-redux";
+import { useAppSelector, useAppDispatch } from "../app/hooks";
 import QRCode from "qrcode";
 import Modal from "../components/Modal";
 import { UrlCodeQR } from "../utils/urlCodeQR";
-import { deleteInvitationService } from "../services/deleteInvitationService";
-import { invitations } from "../features/invitations/invitationsSlice";
-import { useNavigate } from "react-router-dom";
-import { logout } from "../features/auth/authSlice";
+import { selectToken } from "../features/auth/authSlice";
+import { deleteInvitationAsync } from "../features/invitations/invitationsAsync";
+import { resetMessageSuccess } from "../features/invitations/invitationsSlice";
 
 const Invitation = ({
   id,
@@ -17,9 +15,8 @@ const Invitation = ({
   expirationDate,
   tokenShare,
 }: InputsCreateInvitation) => {
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const auth = useSelector((state: RootState) => state.auth.authReducer.token);
+  const token = useAppSelector(selectToken);
+  const dispatch = useAppDispatch();
   const [qr, setQr] = useState("");
   const [urlQR, setUrlQR] = useState("");
   const [showModal, setShoModal] = useState(false);
@@ -37,26 +34,18 @@ const Invitation = ({
       },
       (err, url) => {
         if (err) return console.error(err);
-        // console.log(url);
         setQr(url);
       }
     );
   };
 
   const handleCloseModal = () => {
+    dispatch(resetMessageSuccess());
     setShoModal(false);
   };
 
-  const handleDelete = (id: string) => {
-    deleteInvitationService(auth, id)
-      .then((response) => {
-        dispatch(invitations(response));
-      })
-      .catch((error) => {
-        console.error(error);
-        dispatch(logout());
-        navigate("/");
-      });
+  const handleDelete = () => {
+    dispatch(deleteInvitationAsync({ token, id }));
   };
 
   const handleInvitation = () => {
@@ -69,7 +58,7 @@ const Invitation = ({
     <>
       {showModal && (
         <Modal onClose={handleCloseModal}>
-          <img className="w-1/2 h-auto" src={qr} />
+          <img className="w-1/2 h-auto" src={qr} alt="QR Code" />
           <div className="flex flex-row flex-wrap gap-3 mt-8 justify-center items-center">
             <a
               href={urlQR}
@@ -111,7 +100,7 @@ const Invitation = ({
         </div>
         <button
           className="bg-red-500 px-8 py-2 text-white font-semibold rounded-lg hover:bg-red-600"
-          onClick={() => handleDelete(id)}
+          onClick={handleDelete}
         >
           Eliminar
         </button>

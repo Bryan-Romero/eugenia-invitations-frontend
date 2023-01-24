@@ -1,12 +1,14 @@
-import React, { useState } from "react";
+import React from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { InputsForgotPassword } from "../types/InputsTypes";
-import { forgotPasswordService } from "../services/forgotPasswordService";
 import Spinner from "../components/Spinner";
+import { useAppDispatch, useAppSelector } from "../app/hooks";
+import { selectIsLoading, selectMessage } from "../features/user/userSlice";
+import { forgotPasswordAsync } from "../features/user/userAsync";
 
-interface Inputs extends InputsForgotPassword {
+export interface Inputs extends InputsForgotPassword {
   error: string;
 }
 
@@ -29,29 +31,12 @@ const ForgotPassword = () => {
   } = useForm<Inputs>({
     resolver: yupResolver(schema), // yup, joi and even your own.
   });
-  const [isLoading, setIsLoading] = useState(false);
-  const [emailSend, setEmailSend] = useState("");
+  const isLoading = useAppSelector(selectIsLoading);
+  const messageSucces = useAppSelector(selectMessage);
+  const dispatch = useAppDispatch();
 
   const submitForm = (data: InputsForgotPassword) => {
-    setIsLoading(true);
-    forgotPasswordService(data)
-      .then((response) => {
-        setEmailSend(response.message);
-        setIsLoading(false);
-      })
-      .catch((err) => {
-        if (err?.email) {
-          setError(
-            "email",
-            { type: "focus", message: err.email },
-            { shouldFocus: true }
-          );
-          setIsLoading(false);
-          return;
-        }
-        setError("error", { message: err });
-        setIsLoading(false);
-      });
+    dispatch(forgotPasswordAsync({ data, setError }));
   };
 
   return (
@@ -64,7 +49,7 @@ const ForgotPassword = () => {
         <p className="text-lg tracking-wider font-medium">Enviar E-mail</p>
         {errors.error && (
           <p className="text-sm text-red-500 font-medium" role="alert">
-            {errors.error?.message}
+            {errors.error.message}
           </p>
         )}
         <div className="w-full flex flex-col gap-1">
@@ -77,12 +62,12 @@ const ForgotPassword = () => {
           />
           {errors.email && (
             <p className="text-sm text-red-500 font-medium" role="alert">
-              {errors.email?.message}
+              {errors.email.message}
             </p>
           )}
-          {emailSend && (
+          {messageSucces && (
             <p className="text-lg text-green-400 font-medium text-center">
-              {emailSend}
+              {messageSucces}
             </p>
           )}
         </div>

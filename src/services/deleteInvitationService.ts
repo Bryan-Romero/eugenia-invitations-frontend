@@ -2,7 +2,7 @@ import axios from "../api/axios";
 import { ApiInvitations } from "../types/ApiRespondTypes";
 
 export const deleteInvitationService = (
-  jwt: string,
+  token: string,
   id: string
 ): Promise<ApiInvitations> => {
   return new Promise(async (resolve, reject) => {
@@ -11,14 +11,15 @@ export const deleteInvitationService = (
         data: { id },
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${jwt}`,
+          Authorization: `Bearer ${token}`,
         },
       })
       .then((response) => {
         resolve(response.data);
       })
-      .catch((err) => {
-        reject(err.response.data.message);
+      .catch((error) => {
+        console.error(error);
+        reject(error.response.data.message);
       });
   });
 };

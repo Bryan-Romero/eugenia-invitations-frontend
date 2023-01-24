@@ -1,15 +1,12 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import type { RootState } from "../app/store";
-import { useSelector, useDispatch } from "react-redux";
-import { logout } from "../features/auth/authSlice";
+import { useAppSelector, useAppDispatch } from "../app/hooks";
+import { logout, selectUser, selectIsLogin } from "../features/auth/authSlice";
 
 const NavBar = () => {
-  const user = useSelector((state: RootState) => state.auth.authReducer.user);
-  const isLogin = useSelector(
-    (state: RootState) => state.auth.authReducer.isLogin
-  );
-  const dispatch = useDispatch();
+  const user = useAppSelector(selectUser);
+  const isLogin = useAppSelector(selectIsLogin);
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
   const handleLogout = () => {

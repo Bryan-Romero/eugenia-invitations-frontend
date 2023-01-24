@@ -2,16 +2,17 @@ import axios from "../api/axios";
 import { ApiInvitation } from "../types/ApiRespondTypes";
 
 export const getInvitationsByIdService = (
-  tokenShareInvitation: string
+  tokenToShare: string
 ): Promise<ApiInvitation> => {
   return new Promise(async (resolve, reject) => {
     await axios
-      .get(`invitation/getInvitationById/${tokenShareInvitation}`)
+      .get(`invitation/getInvitationById/${tokenToShare}`)
       .then((response) => {
         resolve(response.data);
       })
-      .catch((err) => {
-        reject(err.response.data.message);
+      .catch((error) => {
+        console.error(error);
+        reject(error.response.data.message);
       });
   });
 };

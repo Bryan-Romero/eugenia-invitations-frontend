@@ -1,21 +1,15 @@
-import React, { useState } from "react";
+import React from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { InputsLogin } from "../types/InputsTypes";
-import { useDispatch } from "react-redux";
-import { login, logout } from "../features/auth/authSlice";
-import { loginService } from "../services/loginService";
+import { useAppDispatch, useAppSelector } from "../app/hooks";
+import { selectIsLoading } from "../features/auth/authSlice";
+import { loginAsync } from "../features/auth/authAsync";
 import Spinner from "../components/Spinner";
-import {
-  invitations,
-  loadingInvitationsFalse,
-  loadingInvitationsTrue,
-} from "../features/invitations/invitationsSlice";
-import { getInvitationsService } from "../services/getInvitationsService";
 
-interface Inputs extends InputsLogin {
+export interface Inputs extends InputsLogin {
   error: string;
 }
 
@@ -39,54 +33,11 @@ const Login = () => {
   } = useForm<Inputs>({
     resolver: yupResolver(schema), // yup, joi and even your own.
   });
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const [isLoading, setIsLoading] = useState(false);
+  const isLoading = useAppSelector(selectIsLoading);
+  const dispatch = useAppDispatch();
 
   const submitForm = (data: InputsLogin) => {
-    setIsLoading(true);
-    loginService(data)
-      .then((response) => {
-        dispatch(login(response));
-        setIsLoading(false);
-        dispatch(loadingInvitationsTrue());
-        getInvitationsService(response.token)
-          .then((res) => {
-            dispatch(invitations(res));
-            dispatch(loadingInvitationsFalse());
-          })
-          .catch((err) => {
-            console.error(err);
-            dispatch(loadingInvitationsFalse());
-            dispatch(logout());
-            navigate("/");
-          });
-      })
-      .catch((error) => {
-        if (error?.email) {
-          setError(
-            "email",
-            { type: "focus", message: error.email },
-            { shouldFocus: true }
-          );
-          setIsLoading(false);
-          return;
-        }
-        if (error?.password) {
-          setError(
-            "password",
-            {
-              type: "focus",
-              message: error.password,
-            },
-            { shouldFocus: true }
-          );
-          setIsLoading(false);
-          return;
-        }
-        setError("error", { message: error });
-        setIsLoading(false);
-      });
+    dispatch(loginAsync({ data, setError }));
   };
 
   return (
@@ -99,7 +50,7 @@ const Login = () => {
         <p className="text-lg tracking-wider font-medium">Iniciar sesion</p>
         {errors.error && (
           <p className="text-sm text-red-500 font-medium" role="alert">
-            {errors.error?.message}
+            {errors.error.message}
           </p>
         )}
         <div className="w-full flex flex-col gap-1">
@@ -112,7 +63,7 @@ const Login = () => {
           />
           {errors.email && (
             <p className="text-sm text-red-500 font-medium" role="alert">
-              {errors.email?.message}
+              {errors.email.message}
             </p>
           )}
         </div>
@@ -126,7 +77,7 @@ const Login = () => {
           />
           {errors.password && (
             <p className="text-sm text-red-500 font-medium" role="alert">
-              {errors.password?.message}
+              {errors.password.message}
             </p>
           )}
         </div>

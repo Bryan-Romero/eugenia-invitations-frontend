@@ -6,11 +6,11 @@ export interface ApiLogin {
   createAt: string;
 }
 
-export interface ApiInvitations {
+export interface ApiInvitations extends ApiMessageSuccess {
   invitations: InputsCreateInvitation[] | null;
 }
 
-export interface ApiInvitation {
+export interface ApiInvitation extends ApiMessageSuccess {
   invitation: InputsCreateInvitation;
 }
 

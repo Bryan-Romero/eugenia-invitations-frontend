@@ -12,8 +12,9 @@ export const changePasswordService = async (
       .then((response) => {
         resolve(response.data);
       })
-      .catch((err) => {
-        reject(err.response.data.message);
+      .catch((error) => {
+        console.error(error);
+        reject(error.response.data.message);
       });
   });
 };

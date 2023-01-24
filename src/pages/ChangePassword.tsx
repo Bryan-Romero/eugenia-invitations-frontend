@@ -1,13 +1,15 @@
-import React, { useState } from "react";
+import React from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { InputsChangePassword } from "../types/InputsTypes";
 import { Link, useParams } from "react-router-dom";
-import { changePasswordService } from "../services/changePasswordService";
 import Spinner from "../components/Spinner";
+import { useAppDispatch, useAppSelector } from "../app/hooks";
+import { selectIsLoading, selectMessage } from "../features/user/userSlice";
+import { changePasswordAsync } from "../features/user/userAsync";
 
-interface Inputs extends InputsChangePassword {
+export interface Inputs extends InputsChangePassword {
   error: string;
 }
 
@@ -32,31 +34,13 @@ const ChangePassword = () => {
   } = useForm<Inputs>({
     resolver: yupResolver(schema), // yup, joi and even your own.
   });
-  const [isLoading, setIsLoading] = useState(false);
-  const [changePassword, setChangePassword] = useState("");
-  const { token } = useParams();
+  const isLoading = useAppSelector(selectIsLoading);
+  const messageSucces = useAppSelector(selectMessage);
+  const dispatch = useAppDispatch();
+  const { token = "" } = useParams();
 
   const submitForm = (data: InputsChangePassword) => {
-    setIsLoading(true);
-    changePasswordService(token!, data)
-      .then((response) => {
-        setChangePassword(response.message);
-        setIsLoading(false);
-      })
-      .catch((err) => {
-        console.error(err);
-        if (err?.email) {
-          setError(
-            "error",
-            { type: "focus", message: err.email },
-            { shouldFocus: true }
-          );
-          setIsLoading(false);
-          return;
-        }
-        setError("error", { message: err });
-        setIsLoading(false);
-      });
+    dispatch(changePasswordAsync({ token, data, setError }));
   };
 
   return (
@@ -69,7 +53,7 @@ const ChangePassword = () => {
         <p className="text-lg tracking-wider font-medium">Cambiar contraseña</p>
         {errors.error && (
           <p className="text-sm text-red-500 font-medium" role="alert">
-            {errors.error?.message}
+            {errors.error.message}
           </p>
         )}
         <div className="w-full flex flex-col gap-1">
@@ -78,30 +62,30 @@ const ChangePassword = () => {
             {...register("password")}
             placeholder="Contraseña"
             type="password"
-            disabled={isLoading}
+            disabled={isLoading || Boolean(messageSucces)}
           />
           {errors.password && (
             <p className="text-sm text-red-500 font-medium" role="alert">
-              {errors.password?.message}
+              {errors.password.message}
             </p>
           )}
         </div>
-        <div className="w-full flex flex-col gap-1 justify-center items-center">
+        <div className="w-full flex flex-col gap-1">
           <input
             className="outline-none w-72 px-2 py-2 border-2 border-gray-400 rounded-lg placeholder-slate-400 disabled:bg-gray-300"
             {...register("confirmPassword")}
             placeholder="Confirmar contraseña"
             type="password"
-            disabled={isLoading}
+            disabled={isLoading || Boolean(messageSucces)}
           />
           {errors.confirmPassword && (
             <p className="text-sm text-red-500 font-medium" role="alert">
               No coincide la contraseña
             </p>
           )}
-          {changePassword && (
-            <p className="text-lg text-green-400 font-medium text-center">
-              {changePassword} vuelve al{" "}
+          {messageSucces && (
+            <p className="w-72 text-lg text-green-400 font-medium text-center">
+              {messageSucces} vuelve al{" "}
               <Link to="/" className="underline">
                 inicio
               </Link>
@@ -110,7 +94,7 @@ const ChangePassword = () => {
         </div>
         <button
           className="bg-blue-500 disabled:bg-blue-900 px-8 py-2 text-white font-semibold rounded-lg hover:bg-blue-600"
-          disabled={isLoading}
+          disabled={isLoading || Boolean(messageSucces)}
         >
           Siguiente
         </button>

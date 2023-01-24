@@ -21,8 +21,9 @@ export const createInvitationService = async (
       .then((response) => {
         resolve(response.data);
       })
-      .catch((err) => {
-        reject(err.response.data.message);
+      .catch((error) => {
+        console.log(error);
+        reject(error.response.data.message);
       });
   });
 };

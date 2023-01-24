@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
@@ -7,13 +7,20 @@ import { useNavigate } from "react-router-dom";
 import QRCode from "qrcode";
 import Modal from "../components/Modal";
 import Spinner from "../components/Spinner";
-import { createInvitationService } from "../services/createInvitationService";
-import { RootState } from "../app/store";
-import { useSelector, useDispatch } from "react-redux";
-import { invitations } from "../features/invitations/invitationsSlice";
 import { UrlCodeQR } from "../utils/urlCodeQR";
-import { logout } from "../features/auth/authSlice";
+import { selectToken } from "../features/auth/authSlice";
+import { useAppDispatch, useAppSelector } from "../app/hooks";
+import {
+  resetMessageSuccess,
+  selectIsLoading,
+  selectMessageSuccess,
+  selectTokenToShare,
+} from "../features/invitations/invitationsSlice";
+import { createInvitationAsync } from "../features/invitations/invitationsAsync";
 
+export interface Inputs extends InputsCreateInvitation {
+  error: string;
+}
 const schema = yup
   .object()
   .shape({
@@ -27,17 +34,20 @@ const CreateInvitation = () => {
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors },
-  } = useForm<InputsCreateInvitation>({
+  } = useForm<Inputs>({
     resolver: yupResolver(schema), // yup, joi and even your own.
   });
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
   const [urlQR, setUrlQR] = useState("");
   const [qr, setQr] = useState("");
   const [showModal, setShoModal] = useState(false);
-  const token = useSelector((state: RootState) => state.auth.authReducer.token);
-  const dispatch = useDispatch();
+  const isLoading = useAppSelector(selectIsLoading);
+  const messageSuccess = useAppSelector(selectMessageSuccess);
+  const tokenToShare = useAppSelector(selectTokenToShare);
+  const token = useAppSelector(selectToken);
+  const dispatch = useAppDispatch();
 
   const generateQRCode = (url: string) => {
     QRCode.toDataURL(
@@ -52,40 +62,34 @@ const CreateInvitation = () => {
       },
       (err, url) => {
         if (err) return console.error(err);
-        // console.log(url);
         setQr(url);
       }
     );
   };
 
+  const submitForm = (data: InputsCreateInvitation) => {
+    dispatch(createInvitationAsync({ token, data, setError }));
+  };
+
   const handleCloseModal = () => {
     setShoModal(false);
+    dispatch(resetMessageSuccess());
     navigate("/");
   };
 
-  const submitForm = (data: InputsCreateInvitation) => {
-    setIsLoading(true);
-    createInvitationService(token!, data)
-      .then((response) => {
-        dispatch(invitations(response));
-        generateQRCode(UrlCodeQR + response.token);
-        setUrlQR(UrlCodeQR + response.token);
-        setShoModal(true);
-        setIsLoading(false);
-      })
-      .catch((err) => {
-        console.error(err);
-        setIsLoading(false);
-        dispatch(logout());
-        navigate("/");
-      });
-  };
+  useEffect(() => {
+    if (messageSuccess) {
+      generateQRCode(UrlCodeQR + tokenToShare);
+      setUrlQR(UrlCodeQR + tokenToShare);
+      setShoModal(true);
+    }
+  }, [messageSuccess]);
 
   return (
     <div className="w-full h-full flex justify-center items-center">
       {showModal && (
         <Modal onClose={handleCloseModal}>
-          <img className="w-1/2 h-auto" src={qr} />
+          <img className="w-1/2 h-auto" src={qr} alt="QR Code" />
           <div className="flex flex-row flex-wrap gap-3 mt-8 justify-center items-center">
             <a
               href={urlQR}
@@ -111,6 +115,11 @@ const CreateInvitation = () => {
       >
         {isLoading && <Spinner />}
         <p className="text-lg tracking-wider font-medium">Crear invitacion</p>
+        {errors.error && (
+          <p className="text-sm text-red-500 font-medium" role="alert">
+            {errors.error.message}
+          </p>
+        )}
         <div className="w-full flex flex-col gap-1">
           <input
             className="outline-none w-72 px-2 py-2 border-2 border-gray-400 rounded-lg placeholder-slate-400 disabled:bg-gray-300"
@@ -121,7 +130,7 @@ const CreateInvitation = () => {
           />
           {errors.guestName && (
             <p className="text-sm text-red-500 font-medium" role="alert">
-              {errors.guestName?.message}
+              {errors.guestName.message}
             </p>
           )}
         </div>
@@ -137,7 +146,7 @@ const CreateInvitation = () => {
           </div>
           {errors.dateOfEntry && (
             <p className="text-sm text-red-500 font-medium" role="alert">
-              {errors.dateOfEntry?.message}
+              {errors.dateOfEntry.message}
             </p>
           )}
         </div>
@@ -153,7 +162,7 @@ const CreateInvitation = () => {
           </div>
           {errors.expirationDate && (
             <p className="text-sm text-red-500 font-medium" role="alert">
-              {errors.expirationDate?.message}
+              {errors.expirationDate.message}
             </p>
           )}
         </div>

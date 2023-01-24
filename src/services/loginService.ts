@@ -9,8 +9,9 @@ export const loginService = (data: InputsLogin): Promise<ApiLogin> => {
       .then((response) => {
         resolve(response.data);
       })
-      .catch((err) => {
-        reject(err.response.data.message);
+      .catch((error) => {
+        console.error(error);
+        reject(error.response.data.message);
       });
   });
 };
